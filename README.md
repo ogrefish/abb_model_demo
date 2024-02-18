@@ -22,7 +22,7 @@ See the following script which was used to visualize the listing price distribut
 
 The number of beds and number of people a listing can accommodate are often correlated with the listing price.
 
-![accommodates plots](abb_model_demo/data/plots/host_tf_props_oaklist.png)
+![accommodates plots](abb_model_demo/data/plots/accom_beds_oaklist.png)
 
 ### Property Type
 
