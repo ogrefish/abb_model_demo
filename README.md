@@ -4,6 +4,28 @@ This code is intended to be indicative of my general coding style,
 to show some basic data exploration and to demonstrate building
 some very simple models using XGBoost and PyTorch.
 
+## Roadmap
+
+Development of this repo is planned as follow.
+
+_Essential_
+  1. Data exploration plots [done]
+  1. Feature, target preparation code impl
+  1. NN model code impl
+  1. XGB model code impl 
+  1. Steering code to run models & produce summary plots
+
+_Fast follows_
+  1. Doc strings for all classes and methods
+  1. Unit tests for feature, target preparation
+
+_Future nice-to-haves_
+  1. Hyperparameter tuning & analysis
+  1. Improved feature engineering (categories -> embeddings)
+  1. Additional data sources (descriptions, amenities, holidays)
+  1. Additional model types (linear, SVR)
+
+
 ## Data Set
 
 The data set was obtained at
