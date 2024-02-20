@@ -110,8 +110,7 @@ class AbbNnModelTrainer():
         return avg_loss
         
 
-    def validate(self, dataloader, model, optimizer, device,
-                 build_preds_df=False):
+    def validate(self, dataloader, model, device, build_preds_df=False):
         model.eval()
         avg_loss = 0.0
         bdf_list= []
@@ -152,7 +151,6 @@ class AbbNnModelTrainer():
             val_loss, val_df = self.validate(
                 dataloader=val_dataloader,
                 model=model,
-                optimizer=optimizer,
                 device=device,
                 build_preds_df=False
                 )
