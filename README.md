@@ -4,18 +4,27 @@ This code is intended to be indicative of my general coding style,
 to show some basic data exploration and to demonstrate building
 some very simple models using XGBoost and PyTorch.
 
+## Usage
+
+    git clone https://github.com/ogrefish/abb_model_demo.git
+    [create and activate a python virtual environment]
+    cd abb_model_demo
+    pip install -e .
+    
+    # to train & visualize the simple PyTorch neural net model:
+    python abb_model_demo/scripts/oak_seq_nn_train.py
+
 ## Roadmap
 
 Development of this repo is planned as follow.
 
 _Essential_
   1. Data exploration plots [done]
-  1. Feature, target preparation code impl
-  1. NN model code impl
+  1. Feature, target preparation code impl [done]
+  1. NN model code impl [done]
+  1. Steering code to run NN model & produce summary plots [done]
   1. XGB model code impl 
-  1. Steering code to run models & produce summary plots
-
-_Fast follows_
+  1. Steering code to run XGB model & produce summary plots
   1. Doc strings for all classes and methods
   1. Unit tests for feature, target preparation
 
@@ -35,6 +44,10 @@ The data set was obtained at
 [http://data.insideairbnb.com/united-states/ca/oakland/2023-12-20/data/listings.csv.gz](http://data.insideairbnb.com/united-states/ca/oakland/2023-12-20/data/listings.csv.gz)
 
 It contains a scrape of 2,749 AirBnB listings in Oakland, CA from December 20, 2023. The listings have been scrubbed (by insideairbnb.com) and do not contain text descriptions nor amenities. This data set (or an updated version) can be explored at [http://insideairbnb.com/oakland/](http://insideairbnb.com/oakland/).
+
+    Normally, I would not include data in a code repo.
+    
+Data has been included here in order to make it easy for others to run the code.
 
 ## Data Exploration
 
