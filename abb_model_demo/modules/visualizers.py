@@ -35,9 +35,8 @@ class AbbPredsVisualizer():
     def draw_pred_vs_targ(self, val_preds_df, pred_col, targ_col,
                           val_range=(1e1, 5e3)):
         fig, ax = plt.subplots(1)
-        g = sns.histplot(val_preds_df,
-                         x=targ_col,
-                         y=pred_col,
+        g = sns.histplot(x=np.power(10.0, val_preds_df.loc[:, targ_col]),
+                         y=np.power(10.0, val_preds_df.loc[:, pred_col]),
                          log_scale=[True, True],
                          cbar=True,
                          cbar_kws={"label": "num listings"},

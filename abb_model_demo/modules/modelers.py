@@ -11,21 +11,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from abb_model_demo.modules.data_loaders import CsvFeatureDfBuilder
-
 
 class AbbNnSeqModelBuilder():
     """
     """
 
-    def __init__(self, device,
-                 feature_col_list=CsvFeatureDfBuilder.feature_col_list):
-        self.device = device
-        self._num_features = len(feature_col_list)
+    def __init__(self):
+        pass
 
 
-    def get_new_model(self):
-        return nn.Sequential(nn.Linear(self._num_features, 32),
+    def get_new_model(self, device, num_features):
+        return nn.Sequential(nn.Linear(num_features, 32),
                              nn.BatchNorm1d(32),
                              nn.ReLU(),
                              nn.Dropout(p=0.05),
@@ -35,22 +31,22 @@ class AbbNnSeqModelBuilder():
                              nn.Linear(16, 1),
                              )\
                  .double()\
-                 .to(self.device)
+                 .to(device)
 
 
 class AbbNnModelTrainer():
     """
     """
 
-    def __init__(self, hyperparam_dict):
+    def __init__(self, logger, hyperparam_dict):
+        self.logger = logger
         self.hyperparam_dict = hyperparam_dict
 
         missing_param_list = [ k for k in self.expected_hyperparam_list
                                if k not in self.hyperparam_dict.keys()
                                ]
         if len(missing_param_list)>0:
-            emsg = f"missing hyper parameters: {missing_param_list}"
-            raise ValueError(f"AbbNnModelTrainer.__init__ {emsg}")
+            raise ValueError(f"missing hyper parameters: {missing_param_list}")
 
 
     @property
@@ -129,8 +125,6 @@ class AbbNnModelTrainer():
 
         if len(bdf_list)>0:
             df = pd.concat(bdf_list)
-            df.loc[:, self.loss_col] = np.divide(df.loc[:, self.loss_col],
-                                                 num_pts)
         else:
             df = None
         return avg_loss, df
@@ -157,6 +151,12 @@ class AbbNnModelTrainer():
 
             loss_list.append( (epoch, "train", train_loss) )
             loss_list.append( (epoch, "val", val_loss) )
+
+            if self.logger.isEnabledFor(logging.DEBUG):
+                self.logger.debug(
+                    f"Epoch {epoch}: train loss {train_loss:0.03f} "
+                    f"val loss {val_loss:0.03f}"
+                    )
 
         loss_df = pd.DataFrame.from_records(
             data=loss_list,

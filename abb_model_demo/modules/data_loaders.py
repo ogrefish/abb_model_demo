@@ -158,6 +158,8 @@ class CsvFeatureDfBuilder(object):
         idf = self._get_model_variables_df(idf)
         train_df, val_df = self._get_train_val_split(idf=idf,
                                                      train_frac=self.train_frac)
+        self.logger.info(f"train data size {train_df.shape}")
+        self.logger.info(f"validation data size {val_df.shape}")
         return train_df, val_df
 
 
@@ -165,9 +167,7 @@ class DfDataSet(tud.Dataset):
     """
     """
 
-    def __init__(self, data_df,
-                 feature_col_list=CsvFeatureDfBuilder.feature_col_list,
-                 target_col=CsvFeatureDfBuilder.target_col):
+    def __init__(self, data_df, feature_col_list, target_col):
         super().__init__()
         self.feature_tensor = None
         self.target_tensor = None
@@ -176,8 +176,7 @@ class DfDataSet(tud.Dataset):
         self.target_col = target_col
 
         if isinstance(self.data_df, pd.DataFrame)==False:
-            emsg = f"unexpected data_df type: {type(self.data_df)}"
-            raise TypeError(f"DfDataSet.__init__ {emsg}")
+            raise TypeError(f"unexpected data_df type: {type(self.data_df)}")
 
 
     def load_data(self):
@@ -189,10 +188,9 @@ class DfDataSet(tud.Dataset):
                 self.data_df.loc[:, self.target_col].values.reshape(-1, 1)
                 )
         else:
-            emsg = (f"data already loaded. feats={self.feature_tensor}, "
-                    f"tgt={self.target_tensor}"
-                    )
-            raise AttributeError(f"DfDataSet.load_data {emsg}")
+            raise AttributeError(f"data already loaded. feats={self.feature_tensor}, "
+                                 f"tgt={self.target_tensor}"
+                                 )
 
 
     def __len__(self):
@@ -200,4 +198,6 @@ class DfDataSet(tud.Dataset):
 
 
     def __getitem__(self, idx):
+        if (self.feature_tensor is None) and (self.target_tensor is None):
+            self.load_data()
         return self.feature_tensor[idx], self.target_tensor[idx]

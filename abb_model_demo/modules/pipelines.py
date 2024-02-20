@@ -1,6 +1,7 @@
 """
 """
 
+from os import device_encoding
 import torch
 from torch.utils.data import DataLoader
 
@@ -24,8 +25,7 @@ class AbbNnSeqPipeline():
                                if k not in self.hyperparam_dict.keys()
                                ]
         if len(missing_param_list)>0:
-            emsg = f"missing hyper parameters: {missing_param_list}"
-            raise ValueError(f"AbbNnSeqPipeline.__init__ {emsg}")
+            raise ValueError(f"missing hyper parameters: {missing_param_list}")
 
 
     @property
@@ -38,7 +38,10 @@ class AbbNnSeqPipeline():
 
 
     def _get_data_loader(self, data_df):
-        dataset = DfDataSet(data_df=data_df)
+        dataset = DfDataSet(data_df=data_df,
+                            feature_col_list=self.df_builder.feature_col_list,
+                            target_col=self.df_builder.target_col
+                            )
         dataloader = DataLoader(dataset,
                                 batch_size=self.hyperparam_dict["batch_size"],
                                 shuffle=self.hyperparam_dict["shuffle"]
@@ -46,10 +49,23 @@ class AbbNnSeqPipeline():
         return dataloader
 
 
+    def _find_device(self):
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+        return device
+
+
     def run_pipeline(self):
 
         # fix random seed
         torch.manual_seed(self.hyperparam_dict["rseed"])
+
+        # find the device
+        device = self._find_device()
 
         # setup train & validation data
         train_df, val_df = self.df_builder.get_train_val_dfs()
@@ -57,10 +73,21 @@ class AbbNnSeqPipeline():
         val_dataloader = self._get_data_loader(data_df=val_df)
 
         # get the model object
-        model = self.model_builder.get_new_model()
+        num_features = len(self.df_builder.feature_col_list)
+        model = self.model_builder.get_new_model(device=device,
+                                                 num_features=num_features)
+
+        # build the optimizer
+        self.optimizer.prepare_optimizer(model_parameters=model.parameters())
 
         # train & validate
-        loss_df, val_preds_df = self.trainer.train_and_validate()
+        loss_df, val_preds_df = self.trainer.train_and_validate(
+            train_dataloader=train_dataloader,
+            val_dataloader=val_dataloader,
+            model=model,
+            optimizer=self.optimizer,
+            device=device
+            )
 
         # plots !
         loss_curve_fig, loss_curve_ax \
