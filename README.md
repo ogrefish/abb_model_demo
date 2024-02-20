@@ -22,6 +22,9 @@ PyTorch NN models.
   
 ## Usage
 
+The NN and XGB models can be trained using the full (OO) project component and
+pipeline code using the scripts below. Install instructions are given first.
+
     git clone https://github.com/ogrefish/abb_model_demo.git
     [create and activate a python virtual environment]
     cd abb_model_demo
