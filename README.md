@@ -12,6 +12,14 @@ Themes:
   * plan for future extensions / adaptations without implementing them before they're needed
   * implement working versions of models using 2024-current libraries (PyTorch, XGBoost)
   
+## Code Sample
+
+A greatly streamlined and working code sample is found in the script below. It
+is intended to be digestible in about 5 minutes for those familiar with training
+PyTorch NN models.
+
+    python abb_model_demo/scripts/oak_nn_code_sample.py
+  
 ## Usage
 
     git clone https://github.com/ogrefish/abb_model_demo.git
@@ -36,6 +44,7 @@ _Essential_
   1. [done] Steering code to run NN model & produce summary plots
   1. [done] XGB model code impl 
   1. [done] Steering code to run XGB model & produce summary plots
+  1. [done] Digestible code sample for NN model with docstrings
   1. Doc strings for all classes and methods
   1. Unit tests for feature, target preparation
 
