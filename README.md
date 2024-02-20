@@ -62,6 +62,16 @@ The predicted listing prices versus the actual listing prices of the validation 
 
 ![oak seq nn pred vs targ plot](abb_model_demo/data/plots/oak_seq_nn_pred_vs_targ.png)
 
+### XGBoost
+
+The loss curve for the train \& validation set. Also no sign of rampant over fitting. Looks like XGB hit a stable minimum.
+
+![oak xgb loss curve plot](abb_model_demo/data/plots/oak_xgb_loss_curve.png)
+
+The predicted listing prices versus the actual listing prices of the validation set. The y=x ideal line is shown in white. The blob is generally sloped in a good direction. Looks like XGB might be a little more precise but potentially less accurate than the NN model -- the blob looks thin, but many listings seem to be somewhat overpriced, particularly to $100.
+
+![oak xgb pred vs targ plot](abb_model_demo/data/plots/oak_xgb_pred_vs_targ.png)
+
 
 ## Data Set
 

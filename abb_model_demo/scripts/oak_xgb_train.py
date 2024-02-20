@@ -23,7 +23,7 @@ def get_default_hyperparam_dict():
     """
     return {
         "learn_rate": 5e-2,
-        "num_estimators": 200,
+        "num_estimators": 160,
         "subsample": 0.80,
         "colsample_bytree": 0.35,
         "gamma": 0.50,
@@ -91,12 +91,12 @@ def main(input_fn, train_frac, log_level, hyperparam_dict,
         os.makedirs(odir, exist_ok=True)
 
         loss_curve_fig, _ = results_dict["loss_curve_plot"]
-        loss_curve_ofn = os.path.join(odir, "oak_seq_nn_loss_curve.png")
+        loss_curve_ofn = os.path.join(odir, "oak_xgb_loss_curve.png")
         loss_curve_fig.savefig(loss_curve_ofn)
         logger.info(f"Saved plot {loss_curve_ofn}")
 
         pred_vs_targ_fig, _ = results_dict["pred_vs_targ_plot"]
-        pred_vs_targ_ofn = os.path.join(odir, "oak_seq_nn_pred_vs_targ.png")
+        pred_vs_targ_ofn = os.path.join(odir, "oak_xgb_pred_vs_targ.png")
         pred_vs_targ_fig.savefig(pred_vs_targ_ofn)
         logger.info(f"Saved plot {pred_vs_targ_ofn}")
 
