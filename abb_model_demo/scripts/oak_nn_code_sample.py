@@ -8,6 +8,13 @@ This is a simplified version of the full project's code for training the NN.
 The full project shows additional code design features as "composition over
 inheritance" style object oriented methods.
 
+*NOTE on the data!* Please see the
+[README.md](https://github.com/ogrefish/abb_model_demo/tree/csamp?tab=readme-ov-file#data-set)
+section "Data Set" which describes what this data is (and AirBnB scrap), what
+the model is predicting (listing price) and how features were found that have
+some predictive power for that target. Feature distribution plots are in
+`abb_model_demo/data/plots/`.
+
 Sphinx style docstrings have been used in lieu of type hinting. Type hinting is
 great, but the lack of enforcement is a significant a drawback (and potentially
 confusing for folks new to Python). My hope is the docstrings go a long way to
