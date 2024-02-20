@@ -125,7 +125,7 @@ def get_args():
                         help="full path to input data file. may include env vars"
                         )
     parser.add_argument("-p", "--plot_save_dir",
-                        default="abb_model_demo/data/plots",
+                        default=None,
                         help="output directory in which to store train/test files"
                         )
     parser.add_argument("-f", "--train_frac",

@@ -34,8 +34,6 @@ def get_default_hyperparam_dict():
         }
 
 
-
-
 def build_xgb_pipeline(input_fn, train_frac, logger, hyperparam_dict):
     """This function is essentially a factory for building pipelines. This
     routine takes care to ensure only components that work well together are
@@ -113,7 +111,7 @@ def get_args():
                         help="full path to input data file. may include env vars"
                         )
     parser.add_argument("-p", "--plot_save_dir",
-                        default="abb_model_demo/data/plots",
+                        default=None,
                         help="output directory in which to store train/test files"
                         )
     parser.add_argument("-f", "--train_frac",

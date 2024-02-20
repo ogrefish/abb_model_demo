@@ -22,6 +22,9 @@ Themes:
     # to train & visualize the simple PyTorch neural net model:
     python abb_model_demo/scripts/oak_seq_nn_train.py
 
+    # to train & visualize the simple XGBoost model:
+    python abb_model_demo/scripts/oak_xgb_train.py
+
 ## Roadmap
 
 Development of this repo is planned as follow.
