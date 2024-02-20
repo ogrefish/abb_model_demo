@@ -8,6 +8,11 @@ from torch.utils.data import DataLoader
 from abb_model_demo.modules.data_loaders import DfDataSet
 
 
+"""
+PyTorch Neural Net related section
+"""
+
+
 class AbbNnSeqPipeline():
     """
     """
@@ -115,3 +120,64 @@ class AbbNnSeqPipeline():
             }
         return result_dict
 
+
+"""
+XGBoost related section
+"""
+
+
+class AbbXgbPipeline():
+    """
+    """
+
+    def __init__(self, df_builder, model_builder, trainer, visualizer):
+        self.df_builder = df_builder
+        self.model_builder = model_builder
+        self.trainer = trainer
+        self.visualizer = visualizer
+
+
+    def run_pipeline(self):
+
+        # setup train & validation data
+        train_df, val_df = self.df_builder.get_train_val_dfs()
+
+        # get the model object
+        model = self.model_builder.get_new_model(
+            loss_function=self.trainer.loss_function
+            )
+
+        # train & validate
+        loss_df, val_preds_df = self.trainer.train_and_validate(
+            train_df=train_df,
+            val_df=val_df,
+            feature_col_list=self.df_builder.feature_col_list,
+            target_col=self.df_builder.target_col,
+            model=model
+            )
+
+        # plots !
+        loss_curve_fig, loss_curve_ax \
+            = self.visualizer.draw_loss_curve(
+                loss_df=loss_df,
+                step_col=self.trainer.step_col,
+                loss_col=self.trainer.loss_name,
+                dset_col=self.trainer.dset_col
+                )
+        pred_vs_targ_fig, pred_vs_targ_ax \
+            = self.visualizer.draw_pred_vs_targ(
+                val_preds_df=val_preds_df,
+                pred_col=self.trainer.summary_pred_col,
+                targ_col=self.trainer.summary_targ_col
+                )
+
+        result_dict = {
+            "train_df": train_df,
+            "val_df": val_df,
+            "model": model,
+            "loss_df": loss_df,
+            "val_preds_df": val_preds_df,
+            "loss_curve_plot": (loss_curve_fig, loss_curve_ax),
+            "pred_vs_targ_plot": (pred_vs_targ_fig, pred_vs_targ_ax),
+            }
+        return result_dict

@@ -22,6 +22,9 @@ Themes:
     # to train & visualize the simple PyTorch neural net model:
     python abb_model_demo/scripts/oak_seq_nn_train.py
 
+    # to train & visualize the simple XGBoost model:
+    python abb_model_demo/scripts/oak_xgb_train.py
+
 ## Roadmap
 
 Development of this repo is planned as follow.
@@ -31,8 +34,8 @@ _Essential_
   1. [done] Feature, target preparation code impl
   1. [done] NN model code impl
   1. [done] Steering code to run NN model & produce summary plots
-  1. XGB model code impl 
-  1. Steering code to run XGB model & produce summary plots
+  1. [done] XGB model code impl 
+  1. [done] Steering code to run XGB model & produce summary plots
   1. Doc strings for all classes and methods
   1. Unit tests for feature, target preparation
 
@@ -58,9 +61,19 @@ The loss curve for the train \& validation set. No sign of rampant over fitting.
 
 ![oak seq nn loss curve plot](abb_model_demo/data/plots/oak_seq_nn_loss_curve.png)
 
-The predicted listing prices versus the actual listing prices of the validation set. The y=x ideal line is shown in white. No signs of banding or clipping, which may indicate the loss optimizer did not converge to a good minimum, are present. The blob is generally sloped in a good direction, altho the prediction precision shows there is room for improvement (see roadmap above and data set description below).
+The predicted listing prices versus the actual listing prices of the validation set. The y=x ideal line is shown in white. No signs of banding or clipping, which may indicate the loss optimizer did not converge to a good minimum, are present. The blob is generally sloped in a good direction.
 
 ![oak seq nn pred vs targ plot](abb_model_demo/data/plots/oak_seq_nn_pred_vs_targ.png)
+
+### XGBoost
+
+The loss curve for the train \& validation set. Also no sign of rampant over fitting. Looks like XGB hit a stable minimum.
+
+![oak xgb loss curve plot](abb_model_demo/data/plots/oak_xgb_loss_curve.png)
+
+The predicted listing prices versus the actual listing prices of the validation set. The y=x ideal line is shown in white. The blob is generally sloped in a good direction. Looks like XGB might be a little more precise but potentially less accurate than the NN model -- the blob looks thin, but many listings seem to be somewhat overpriced, particularly to $100.
+
+![oak xgb pred vs targ plot](abb_model_demo/data/plots/oak_xgb_pred_vs_targ.png)
 
 
 ## Data Set

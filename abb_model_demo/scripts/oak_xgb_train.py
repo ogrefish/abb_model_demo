@@ -10,11 +10,9 @@ plt.style.use('ggplot')
 
 from abb_model_demo.modules.data_loaders import CsvFeatureDfBuilder
 from abb_model_demo.modules.modelers \
-    import AbbNnSeqModelBuilder, AbbNnModelTrainer
-from abb_model_demo.modules.optimizers \
-    import AbbNnAdadeltaOptimizer, AbbNnAdamOptimizer
+    import AbbXgbModelBuilder, AbbXgbModelTrainer
 from abb_model_demo.modules.visualizers import AbbPredsVisualizer
-from abb_model_demo.modules.pipelines import AbbNnSeqPipeline
+from abb_model_demo.modules.pipelines import AbbXgbPipeline
 
 
 def get_default_hyperparam_dict():
@@ -24,21 +22,19 @@ def get_default_hyperparam_dict():
     small size of this demo codebase.
     """
     return {
-        "num_epochs": 350,
-        "batch_size": 300,
-        "shuffle": True,
+        "learn_rate": 5e-2,
+        "num_estimators": 160,
+        "subsample": 0.80,
+        "colsample_bytree": 0.35,
+        "gamma": 0.50,
+        "tree_method": "hist",
+        "enable_categorical": True,
         "rseed": 1,
-        "learn_rate": 3e-4,
-        "weight_decay": 1e-3,      # only for adam opt
-        "scheduler_step_size": 1,  # only for adadelta opt
-        "scheduler_gamma": 0.7,    # only for adadelta opt
+        "fit_verbose": False
         }
 
 
-
-
-def build_nn_seq_pipeline(input_fn, train_frac, logger,
-                          optimizer_type, hyperparam_dict):
+def build_xgb_pipeline(input_fn, train_frac, logger, hyperparam_dict):
     """This function is essentially a factory for building pipelines. This
     routine takes care to ensure only components that work well together are
     implemented together in the pipeline.
@@ -49,29 +45,20 @@ def build_nn_seq_pipeline(input_fn, train_frac, logger,
     sense.
     """
 
-    if optimizer_type=="adam":
-        optimizer = AbbNnAdamOptimizer(hyperparam_dict=hyperparam_dict)
-    elif optimizer_type=="adadelta":
-        optimizer = AbbNnAdadeltaOptimizer(hyperparam_dict=hyperparam_dict)
-    else:
-        raise ValueError(f"Unkown optimizer_type: {optimizer_type}")
-
-    pipeline = AbbNnSeqPipeline(
+    pipeline = AbbXgbPipeline(
         df_builder=CsvFeatureDfBuilder(input_fn=input_fn,
                                        train_frac=train_frac,
                                        logger=logger),
-        model_builder=AbbNnSeqModelBuilder(),
-        optimizer=optimizer,
-        trainer=AbbNnModelTrainer(logger=logger,
-                                  hyperparam_dict=hyperparam_dict),
+        model_builder=AbbXgbModelBuilder(hyperparam_dict=hyperparam_dict),
+        trainer=AbbXgbModelTrainer(logger=logger,
+                                   hyperparam_dict=hyperparam_dict),
         visualizer=AbbPredsVisualizer(),
-        hyperparam_dict=hyperparam_dict
         )
 
     return pipeline
 
 
-def main(input_fn, train_frac, optimizer_type, log_level, hyperparam_dict,
+def main(input_fn, train_frac, log_level, hyperparam_dict,
          plot_save_dir):
     """
     """
@@ -83,15 +70,14 @@ def main(input_fn, train_frac, optimizer_type, log_level, hyperparam_dict,
     logger.addHandler(sh)
     logger.setLevel(log_level.upper())
 
-    pipeline = build_nn_seq_pipeline(input_fn=input_fn,
-                                     train_frac=train_frac,
-                                     logger=logger,
-                                     optimizer_type=optimizer_type,
-                                     hyperparam_dict=hyperparam_dict)
+    pipeline = build_xgb_pipeline(input_fn=input_fn,
+                                  train_frac=train_frac,
+                                  logger=logger,
+                                  hyperparam_dict=hyperparam_dict)
 
     # all the action happens here!
-    # see `build_nn_seq_pipeline` to tell which class this pipeline object is
-    # (it's AbbNnSeqPipeline) and look at the function def inside pipeline.py
+    # see `build_xgb_pipeline` to tell which class this pipeline object is
+    # (it's AbbXgbPipeline) and look at the function def inside pipeline.py
     # to see what this does...
     # but no surprise, it sets up the data, model, optimizer, does the
     # training and validation and then makes the plots
@@ -103,12 +89,12 @@ def main(input_fn, train_frac, optimizer_type, log_level, hyperparam_dict,
         os.makedirs(odir, exist_ok=True)
 
         loss_curve_fig, _ = results_dict["loss_curve_plot"]
-        loss_curve_ofn = os.path.join(odir, "oak_seq_nn_loss_curve.png")
+        loss_curve_ofn = os.path.join(odir, "oak_xgb_loss_curve.png")
         loss_curve_fig.savefig(loss_curve_ofn)
         logger.info(f"Saved plot {loss_curve_ofn}")
 
         pred_vs_targ_fig, _ = results_dict["pred_vs_targ_plot"]
-        pred_vs_targ_ofn = os.path.join(odir, "oak_seq_nn_pred_vs_targ.png")
+        pred_vs_targ_ofn = os.path.join(odir, "oak_xgb_pred_vs_targ.png")
         pred_vs_targ_fig.savefig(pred_vs_targ_ofn)
         logger.info(f"Saved plot {pred_vs_targ_ofn}")
 
@@ -133,11 +119,6 @@ def get_args():
                         help="fraction of data to keep in training set. "
                         "will keep 1-train_frac in the validation set."
                         )
-    parser.add_argument("-o", "--optimizer_type",
-                        default="adam",
-                        choices=["adam", "adadelta"],
-                        help="type of optimizer to use during training"
-                        )
     parser.add_argument("-l", "--log_level",
                         default="INFO",
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -150,7 +131,6 @@ if __name__=="__main__":
     args = get_args()
     main(input_fn=args.input_fn,
          train_frac=args.train_frac,
-         optimizer_type=args.optimizer_type,
          log_level=args.log_level,
          hyperparam_dict=get_default_hyperparam_dict(),
          plot_save_dir=args.plot_save_dir
