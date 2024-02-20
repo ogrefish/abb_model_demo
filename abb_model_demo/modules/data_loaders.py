@@ -5,6 +5,8 @@ and evaluation.
 import os
 import numpy as np
 import pandas as pd
+import torch
+import torch.utils.data as tud
 
 
 class CsvFeatureDfBuilder(object):
@@ -33,10 +35,27 @@ class CsvFeatureDfBuilder(object):
 
     """
 
+
     def __init__(self, input_fn, train_frac, logger):
         self.input_fn = input_fn
         self.train_frac = train_frac
         self.logger = logger
+
+
+    @property
+    def feature_col_list(self):
+        return [
+            "property_type_fw_id",
+            "accommodates",
+            "beds",
+            "neighbourhood_cleansed_id",
+            "has_availability_num",
+            ]
+
+
+    @property
+    def target_col(self):
+        return "log_price_amt"
 
 
     def _get_input_df(self, input_fn):
@@ -62,6 +81,8 @@ class CsvFeatureDfBuilder(object):
 
 
     def _add_feat_cols(self, df):
+        # NOTE: column names must match target_col and feature_col_list
+        # properties
         df.loc[:, "property_type_fw"] = df.loc[:, "property_type"]\
                                           .str.split().str.get(0)
         df.loc[:, "property_type_fw_id"] \
@@ -87,6 +108,14 @@ class CsvFeatureDfBuilder(object):
                 1
                 )\
             )
+
+        # set explicit category dtypes
+        df = df.astype( { c:"category" for c
+                          in ["property_type_fw_id",
+                              "neighbourhood_cleansed_id",
+                              "has_availability_num"]
+                          }
+                        )
         return df
 
 
@@ -98,11 +127,23 @@ class CsvFeatureDfBuilder(object):
             f"Not enough samples to train/val split. Have {num_samples}; need 10"
         first_val_samp = int(num_samples*train_frac)
         train_df, val_df = shuffle_df.iloc[:first_val_samp], \
-                            shuffle_df.iloc[first_val_samp:]
+                           shuffle_df.iloc[first_val_samp:]
         return train_df, val_df
 
 
-    def _save_df(self, odf, output_dir, output_fn):
+    def _get_model_variables_df(self, idf):
+        """
+        See class notes about why hard-coded column names are in use.
+        Basically, prioritizing:
+          * Readability & simplicity
+          * Avoiding user error (e.g. a typo makes a model not trainable)
+          * Ensuring the design will make extension / refactor simple
+            in case of a future use case for varying column names
+        """
+        return idf.loc[:, [self.target_col] + self.feature_col_list]
+
+
+    def save_df(self, odf, output_dir, output_fn):
         ofn = os.path.join(os.path.expandvars(output_dir),
                            output_fn)
         res = odf.to_csv(ofn, index=False, mode="w")
@@ -114,8 +155,49 @@ class CsvFeatureDfBuilder(object):
         idf = self._get_input_df(input_fn=self.input_fn)
         idf = self._clean_prices(idf)
         idf = self._add_feat_cols(idf)
+        idf = self._get_model_variables_df(idf)
         train_df, val_df = self._get_train_val_split(idf=idf,
                                                      train_frac=self.train_frac)
         return train_df, val_df
 
 
+class DfDataSet(tud.Dataset):
+    """
+    """
+
+    def __init__(self, data_df,
+                 feature_col_list=CsvFeatureDfBuilder.feature_col_list,
+                 target_col=CsvFeatureDfBuilder.target_col):
+        super().__init__()
+        self.feature_tensor = None
+        self.target_tensor = None
+        self.data_df = data_df
+        self.feature_col_list = feature_col_list
+        self.target_col = target_col
+
+        if isinstance(self.data_df, pd.DataFrame)==False:
+            emsg = f"unexpected data_df type: {type(self.data_df)}"
+            raise TypeError(f"DfDataSet.__init__ {emsg}")
+
+
+    def load_data(self):
+        if (self.feature_tensor is None) and (self.target_tensor is None):
+            self.feature_tensor = torch.tensor(
+                self.data_df.loc[:, self.feature_col_list].values
+                )
+            self.target_tensor = torch.tensor(
+                self.data_df.loc[:, self.target_col].values.reshape(-1, 1)
+                )
+        else:
+            emsg = (f"data already loaded. feats={self.feature_tensor}, "
+                    f"tgt={self.target_tensor}"
+                    )
+            raise AttributeError(f"DfDataSet.load_data {emsg}")
+
+
+    def __len__(self):
+        return len(self.data_df)
+
+
+    def __getitem__(self, idx):
+        return self.feature_tensor[idx], self.target_tensor[idx]

@@ -21,6 +21,8 @@ _Fast follows_
 
 _Future nice-to-haves_
   1. Hyperparameter tuning & analysis
+  1. Fix all random seeds to get fully reproducible results
+  1. Dyanmically determine qualified class/method name in exceptions to prevent misleading error messages (in case of copy/paste/forget-to-edit)
   1. Improved feature engineering (categories -> embeddings)
   1. Additional data sources (descriptions, amenities, holidays)
   1. Additional model types (linear, SVR)
