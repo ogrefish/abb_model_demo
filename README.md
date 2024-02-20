@@ -31,8 +31,8 @@ _Essential_
   1. [done] Feature, target preparation code impl
   1. [done] NN model code impl
   1. [done] Steering code to run NN model & produce summary plots
-  1. XGB model code impl 
-  1. Steering code to run XGB model & produce summary plots
+  1. [done] XGB model code impl 
+  1. [done] Steering code to run XGB model & produce summary plots
   1. Doc strings for all classes and methods
   1. Unit tests for feature, target preparation
 
