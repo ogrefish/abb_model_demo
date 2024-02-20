@@ -55,9 +55,11 @@ The purpose is more to:
 ### PyTorch Neural Network
 
 The loss curve for the train \& validation set. No sign of rampant over fitting. Positive signs that the loss optimizer converged.
+
 ![oak seq nn loss curve plot](abb_model_demo/data/plots/oak_seq_nn_loss_curve.png)
 
 The predicted listing prices versus the actual listing prices of the validation set. The y=x ideal line is shown in white. No signs of banding or clipping, which may indicate the loss optimizer did not converge to a good minimum, are present. The blob is generally sloped in a good direction, altho the prediction precision shows there is room for improvement (see roadmap above and data set description below).
+
 ![oak seq nn pred vs targ plot](abb_model_demo/data/plots/oak_seq_nn_pred_vs_targ.png)
 
 
