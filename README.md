@@ -4,6 +4,14 @@ This code is intended to be indicative of my general coding style,
 to show some basic data exploration and to demonstrate building
 some very simple models using XGBoost and PyTorch.
 
+Themes:
+  * OO design with [composition over inheritance](https://pyvideo.org/pycon-us-2013/the-end-of-object-inheritance-the-beginning-of.html)
+  * replaceable-modules-in-a-pipeline design
+  * try to keep classes simple; don't over optimize
+  * avoid abstract interfaces when only one implementation is needed
+  * plan for future extensions / adaptations without implementing them before they're needed
+  * implement working versions of models using 2024-current libraries (PyTorch, XGBoost)
+  
 ## Usage
 
     git clone https://github.com/ogrefish/abb_model_demo.git
@@ -19,10 +27,10 @@ some very simple models using XGBoost and PyTorch.
 Development of this repo is planned as follow.
 
 _Essential_
-  1. Data exploration plots [done]
-  1. Feature, target preparation code impl [done]
-  1. NN model code impl [done]
-  1. Steering code to run NN model & produce summary plots [done]
+  1. [done] Data exploration plots
+  1. [done] Feature, target preparation code impl
+  1. [done] NN model code impl
+  1. [done] Steering code to run NN model & produce summary plots
   1. XGB model code impl 
   1. Steering code to run XGB model & produce summary plots
   1. Doc strings for all classes and methods
