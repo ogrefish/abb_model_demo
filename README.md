@@ -52,6 +52,7 @@ _Essential_
   1. Unit tests for feature, target preparation
 
 _Future nice-to-haves_
+  1. Bootstrap feature importance distributions (over subsampled data sets)
   1. Hyperparameter tuning & analysis
   1. Fix all random seeds to get fully reproducible results
   1. Improved feature engineering (categories -> embeddings)

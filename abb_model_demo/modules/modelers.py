@@ -173,7 +173,6 @@ class AbbNnModelTrainer():
         _, val_preds_df = self.validate(
             dataloader=val_dataloader,
             model=model,
-            optimizer=optimizer,
             device=device,
             build_preds_df=True
             )

@@ -10,14 +10,14 @@ class AbbNnOptimizerBase():
 
     def __init__(self, hyperparam_dict):
         self.hyperparam_dict = hyperparam_dict
-        self.optimizer = None  # set in base class
-        self.scheduler = None  # (optionally) set in base class
+        self.optimizer = None  # set in derived class
+        self.scheduler = None  # (optionally) set in derived class
 
         self.verify_hyperparams()
 
 
     def verify_hyperparams(self):
-        raise NotImplementedError("AbbNnOptimizer.verify_hyperparams")
+        raise NotImplementedError("AbbNnOptimizerBase.verify_hyperparams")
 
 
     def batch_start(self):
