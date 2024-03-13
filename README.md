@@ -14,8 +14,9 @@ Themes:
   
 ## Code Sample
 
-A greatly streamlined and working code sample is found in the script below. It
-is intended to be digestible in about 5 minutes for those familiar with training
+A greatly streamlined and working code sample is found in
+[oak_nn_code_sample.py](abb_model_demo/scripts/oak_nn_code_sample.py). It is
+intended to be digestible in about 5 minutes for those familiar with training
 PyTorch NN models.
 
     python abb_model_demo/scripts/oak_nn_code_sample.py
