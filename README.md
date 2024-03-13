@@ -48,11 +48,11 @@ _Essential_
   1. [done] XGB model code impl 
   1. [done] Steering code to run XGB model & produce summary plots
   1. [done] Digestible code sample for NN model with docstrings
-  1. Doc strings for all classes and methods
-  1. Unit tests for feature, target preparation
+  1. Doc strings for all classes and methods, using an LLM to aid generation
+  1. Unit tests; esp. for feature, target preparation. Use LLM for aid.
 
 _Future nice-to-haves_
-  1. Bootstrap feature importance distributions (over subsampled data sets)
+  1. Bootstrap feature importance distributions (over subsampled data sets). Explore rating the importance of the highly correlated "Accommodates" and "Beds" features.
   1. Hyperparameter tuning & analysis
   1. Fix all random seeds to get fully reproducible results
   1. Improved feature engineering (categories -> embeddings)
