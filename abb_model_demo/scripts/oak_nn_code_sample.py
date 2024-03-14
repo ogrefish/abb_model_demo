@@ -8,18 +8,16 @@ This is a simplified version of the full project's code for training the NN.
 The full project shows additional code design features as "composition over
 inheritance" style object oriented methods.
 
+Type hints will be added in a future update. For now, types are indicated in
+docstrings. Since type hints are not enforced in Python, they are a lower
+priority than docstrings.
+
 *NOTE on the data!* Please see the
 [README.md](https://github.com/ogrefish/abb_model_demo/tree/csamp?tab=readme-ov-file#data-set)
 section "Data Set" which describes what this data is (and AirBnB scrap), what
 the model is predicting (listing price) and how features were found that have
 some predictive power for that target. Feature distribution plots are in
 `abb_model_demo/data/plots/`.
-
-Sphinx style docstrings have been used in lieu of type hinting. Type hinting is
-great, but the lack of enforcement is a significant a drawback (and potentially
-confusing for folks new to Python). My hope is the docstrings go a long way to
-indicate what types are expected while avoiding confusion that types might be
-enforced.
 
 USAGE:
     python abb_model_demo/scripts/oak_nn_code_sample.py
@@ -83,7 +81,7 @@ def run_pipeline(input_fn, train_frac, logger, hyperparam_dict):
 
     In the full project, pipelines are objects that have components. The
     components are objects that perform some operation, which is why they are
-    named with verbs.
+    named as nouns that indicate their job ("doers").
 
     To keep the code sample simple, only the data builder and result visualizer
     components are directly used.
@@ -93,25 +91,26 @@ def run_pipeline(input_fn, train_frac, logger, hyperparam_dict):
 
     Compare to `AbbNnSeqPipeline.run_pipeline` found in `modules/pipelines.py`
 
-    :param input_fn: the input data filename (with path)
-    :type input_fn: str
-    :param train_frac: the fraction of data to keep in the training set, with
-    1-train_frac reserved for the validation set
-    :type train_frac: float
-    :param logger: where to log messages to
-    :type logger: logging.Logger
-    :param hyperparam_dict: dictionary of hyperparameters, needing "rseed",
-    "learn_rate" and "weight_decay" keys
-    :type hyperparam_dict: dict
+    Args:
+        input_fn (str): Path to the input data file.
+        train_frac (float): Fraction of data to keep in the training set
+        logger (logging.Logger): Logger for logging messages.
+        hyperparam_dict (dict): Dictionary containing hyperparameters,
+          needing "rseed", "learn_rate" and "weight_decay" keys
 
+    Returns:
+        dict: A Python dictionary containing the following keys:
 
-    :return: a Python dictionary containing the train and validation data frames
-    ("train_df" and "val_df" keys), the model itself ("model" key), the loss
-    and predtions-vs-targets results dataframes ("loss_df" and "val_preds_df"
-    keys), and two fig/ax tuples for the summary plots ("loss_curve_plot"
-    and "pred_vs_targ_plot" keys)
-    :rtype: dict
-
+        - train_df (pandas.DataFrame): Training DataFrame.
+        - val_df (pandas.DataFrame): Validation DataFrame.
+        - model (object): Trained model.
+        - loss_df (pandas.DataFrame): Loss DataFrame.
+        - val_preds_df (pandas.DataFrame): Validation
+            prediction DataFrame.
+        - loss_curve_plot (tuple): Matplotlib figure, axis
+            showing the loss curve.
+        - pred_vs_targ_plot (tuple): Matplotlib figure, axis
+            showing the predicted vs. target values.
     """
 
     # fix random seed
@@ -144,7 +143,7 @@ def run_pipeline(input_fn, train_frac, logger, hyperparam_dict):
     # accommodation capacity, neighborhood category and availability yes/no
     num_features = len(df_builder.feature_col_list)
     model = get_new_model(device=device, num_features=num_features)
-                          
+
     # build the optimizer
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -190,7 +189,7 @@ def run_pipeline(input_fn, train_frac, logger, hyperparam_dict):
         "pred_vs_targ_plot": (pred_vs_targ_fig, pred_vs_targ_ax),
     }
     return result_dict
-    
+
 
 def _find_device():
     if torch.cuda.is_available():
@@ -205,19 +204,20 @@ def _find_device():
 def _get_data_loader(data_df, feature_col_list, target_col,
                      hyperparam_dict):
     """
+    Loads the data into a PyTorch DataLoader for processing.
 
-    :param data_df: a Pandas DataFrame containing the data to be loaded
-    :type data_df: pd.DataFrame
-    :param feature_col_list: a list of feature column names found in data_df
-    :type feature_col_list: List[str]
-    :param target_col: name of the target (label) column in data_df
-    :type target_col: str
-    :param hyperparam_dict: dictionary of hyperparameters, needing "shuffle"
-    and "batch_size" keys
-    :type hyperparam_dict: dict
+    Args:
+        data_df (pd.DataFrame): A Pandas DataFrame containing the data to be loaded.
 
-    :return: DataLoader for the data in the input dataframe
-    :rtype: torch.utils.data.DataLoader
+        feature_col_list (List[str]): A list of feature column names found in data_df.
+
+        target_col (str): Name of the target (label) column in data_df.
+
+        hyperparam_dict (dict): A dictionary of hyperparameters, needing "shuffle" and
+            "batch_size" keys.
+
+    Returns:
+        torch.utils.data.DataLoader: A DataLoader for the data in the input dataframe.
     """
     dataset = DfDataSet(data_df=data_df,
                         feature_col_list=feature_col_list,
@@ -238,12 +238,12 @@ def get_new_model(device, num_features):
     converge to a model that makes reasonable predictions on the validation
     data.
 
-    :param device: which device to load the model to. see `_find_device`
-    :type device: str
-    :param num_features: the number of features to use as input in 1st layer
-    :type num_features: int
-    :return: the neural network model object
-    :rtype: nn.Sequential
+    Args:
+        device (str): which device to load the model to. see `_find_device`
+        num_features (int): the number of features to use as input in 1st layer
+
+    Returns:
+        nn.Sequential: the neural network model object
     """
     return nn.Sequential(nn.Linear(num_features, 32),
                          nn.BatchNorm1d(32),
@@ -262,17 +262,15 @@ def _train_batch(dataloader, model, optimizer, device):
     """Trains over batches of data in the dataloader. Expected to be called
     from a loop over epochs. Loss is MSE.
 
-    :param dataloader: dataloader for feature & target (training) data
-    :type dataloader: torch.utils.data.DataLoader
-    :param model: the (NN) model to fit to the data
-    :type model: torch.nn.Module (specifically torch.nn.Sequential)
-    :param optimizer: the optimizer to use to minimize loss
-    :type optimizer: torch.optim.Optimizer (specifically torch.optim.Adam)
-    :device: the device to send the data to for model training
-    :type device: str
+    Args:
+        dataloader (torch.utils.data.DataLoader): dataloader for
+           feature & target (training) data
+        model (torch.nn.Module): the (NN) model to fit to the data
+        optimizer (torch.optim.Optimizer): the optimizer to use to minimize loss
+        device (str): the device to send the data to for model training
 
-    :return: average loss over the batch steps
-    :rtype: float
+    Returns:
+        float: average loss over the batch steps
     """
     model.train()
     avg_loss = 0.0
@@ -292,20 +290,18 @@ def validate(dataloader, model, device, build_preds_df=False):
     """Calculates predictions of the model over the specified data. Optionally
     builds a summary DataFrame of prediction and target values.
 
-    :param dataloader: dataloader for feature & target (validation) data
-    :type dataloader: torch.utils.data.DataLoader
-    :param model: the (NN) model to fit to the data
-    :type model: torch.nn.Module (specifically torch.nn.Sequential)
-    :device: the device to send the data to for model training
-    :type device: str
-    :param build_preds_df: (Optional; default=False) whether to build a summary
-    dataframe of the predicted and target values
-    :type build_preds_df: boolean
+    Args:
+        dataloader (torch.utils.data.DataLoader): dataloader for
+           feature & target (training) data
+        model (torch.nn.Module): the (NN) model to fit to the data
+        device (str): the device to send the data to for model training
+        build_preds_df (boolean): (Optional; default=False) whether to
+           build a summary dataframe of the predicted and target values
 
-    :return: tupl of the avg loss (MSE) over the data, and an optional summary
-    Pandas DataFrame containing predicted and target values
-    :rtype: Tuple[float, Optional[pd.DataFrame]]
-
+    Returns:
+      Tuple[float, Optional[pd.DataFrame]]: tuple of the avg loss (MSE) over
+        the data, and an optional summary Pandas DataFrame containing predicted
+        and target values
     """
     model.eval()
     avg_loss = 0.0
@@ -343,22 +339,19 @@ def train_and_validate(train_dataloader, val_dataloader,
     in order to generate the loss curves during training as well as a final
     summary of predicted versus target (listing price) values.
 
-    :param train_dataloader: dataloader for feature & target (training) data
-    :type train_dataloader: torch.utils.data.DataLoader
-    :param val_dataloader: dataloader for feature & target (validation) data
-    :type val_dataloader: torch.utils.data.DataLoader
-    :param model: the (NN) model to fit to the data
-    :type model: torch.nn.Module (specifically torch.nn.Sequential)
-    :param optimizer: the optimizer to use to minimize loss
-    :type optimizer: torch.optim.Optimizer (specifically torch.optim.Adam)
-    :device: the device to send the data to for model training
-    :type device: str
-    :param hyperparam_dict: dictionary of hyperparameters, needing
-    "num_epochs" key
-    :type hyperparam_dict: dict
+    Args:
+        train_dataloader (torch.utils.data.DataLoader): dataloader for
+            feature & target (training) data
+        val_dataloader (torch.utils.data.DataLoader): dataloader for
+            feature & target (validation) data
+        model (torch.nn.Module): the (NN) model to fit to the data
+        optimizer (torch.optim.Optimizer): the optimizer to use to minimize loss
+        device (str): the device to send the data to for model training
+        hyperparam_dict (dict): dictionary of hyperparameters, needing
+            "num_epochs" key
 
-    :return: average loss over the batch steps
-    :rtype: float
+    Returns:
+        float: average loss over the batch steps
     """
     loss_list = []
     for epoch in range(hyperparam_dict["num_epochs"]):
@@ -406,23 +399,26 @@ def main(input_fn, train_frac, log_level, hyperparam_dict):
     Creates the logging object, calls `run_pipeline` (where all
     the fun stuff happens) and then displays the plots.
 
-    :param input_fn: input filename of data (with path)
-    :type input_fn: str
-    :param train_frac: the fraction of data to keep in the training set, with
-    1-train_frac reserved for the validation set
-    :type train_frac: float
-    :param log_level: level to use for logging messages
-    :type log_level: str
-    :param hyperparam_dict: dictionary of hyperparameters, needing "rseed",
-    "learn_rate" and "weight_decay" keys
-    :type hyperparam_dict: dict
+    Args:
+        input_fn (str): input filename of data (with path)
+        train_frac (float): the fraction of data to keep in the training set
+        log_level (str): level to use for logging messages
+        hyperparam_dict (dict): dictionary of hyperparameters, needing "rseed",
+            "learn_rate" and "weight_decay" keys
 
-    :return: a Python dictionary containing the train and validation data frames
-    ("train_df" and "val_df" keys), the model itself ("model" key), the loss
-    and predtions-vs-targets results dataframes ("loss_df" and "val_preds_df"
-    keys), and two fig/ax tuples for the summary plots ("loss_curve_plot"
-    and "pred_vs_targ_plot" keys)
-    :rtype: dict
+    Returns:
+        dict: A Python dictionary containing the following keys:
+
+        - train_df (pandas.DataFrame): Training DataFrame.
+        - val_df (pandas.DataFrame): Validation DataFrame.
+        - model (object): Trained model.
+        - loss_df (pandas.DataFrame): Loss DataFrame.
+        - val_preds_df (pandas.DataFrame): Validation
+            prediction DataFrame.
+        - loss_curve_plot (tuple): Matplotlib figure, axis
+            showing the loss curve.
+        - pred_vs_targ_plot (tuple): Matplotlib figure, axis
+            showing the predicted vs. target values.
     """
 
     logger = logging.getLogger(__name__)
@@ -451,8 +447,8 @@ def get_args():
     """
     Parses command line arguments and returns the arguments object
 
-    :return: the parsed command line arguments
-    :rtype: argparse.Namespace
+    Returns:
+       argparse.Namespace: the parsed command line arguments
     """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
