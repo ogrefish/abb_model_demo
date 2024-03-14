@@ -37,6 +37,14 @@ class CsvFeatureDfBuilder(object):
 
 
     def __init__(self, input_fn, train_frac, logger):
+        """
+        Initializes the DataLoader class.
+
+        Args:
+            input_fn (str): Path to the input csv file.
+            train_frac (float): Fraction of the training data to load.
+            logger (logging.Logger): A logger object to record progress.
+        """
         self.input_fn = input_fn
         self.train_frac = train_frac
         self.logger = logger
@@ -44,6 +52,9 @@ class CsvFeatureDfBuilder(object):
 
     @property
     def feature_col_list(self):
+        """
+        The list of feature column names
+        """
         return [
             "property_type_fw_id",
             "accommodates",
@@ -55,10 +66,22 @@ class CsvFeatureDfBuilder(object):
 
     @property
     def target_col(self):
+        """
+        The target (to be predicted) column name
+        """
         return "log_price_amt"
 
 
     def _get_input_df(self, input_fn):
+        """
+        Reads the input file and returns a pandas dataframe.
+
+        Args:
+            input_fn (str): Path to the input csv file.
+
+        Returns:
+            pandas.DataFrame: A dataframe containing the loaded data.
+        """
         infn = os.path.expandvars(input_fn)
         df = pd.read_csv(infn)
         self.logger.info(f"Read input file: {infn}")
@@ -66,6 +89,16 @@ class CsvFeatureDfBuilder(object):
 
 
     def _clean_prices(self, df):
+        """
+        Removes records with missing target valeus and formats the price column.
+
+        Args:
+            df (pandas.DataFrame): The input dataframe.
+
+        Returns:
+            pandas.DataFrame: The cleaned dataframe.
+        """
+
         # clear records that are missing the target variable
         cdf = df.loc[~(df["price"].isnull())]\
                 .reset_index(drop=True)
@@ -81,6 +114,30 @@ class CsvFeatureDfBuilder(object):
 
 
     def _add_feat_cols(self, df):
+        """
+        Adds feature columns to the dataframe.
+        * True/false strings translated to ordinal ("t" to 1, "f" to 0)
+        * Special care taken with "beds" column: missing values
+          are filled with "accommodates"/2.0
+        * The first word of the "property_type" string is selected
+        * Categorical features are created through simple ordinal labeling of
+          distinct values for: property type first word and neighborhood
+        * Categorical features are given the dtype "category"
+
+        See class notes about why hard-coded column names are in use.
+        Basically, prioritizing:
+          * Readability & simplicity
+          * Avoiding user error (e.g. a typo makes a model not trainable)
+          * Ensuring the design will make extension / refactor simple
+            in case of a future use case for varying column names
+
+        Args:
+            df (pandas.DataFrame): The input dataframe.
+
+        Returns:
+            pandas.DataFrame: The resulting dataframe including new
+               feature columns.
+        """
         # NOTE: column names must match target_col and feature_col_list
         # properties
         df.loc[:, "property_type_fw"] = df.loc[:, "property_type"]\
@@ -120,6 +177,18 @@ class CsvFeatureDfBuilder(object):
 
 
     def _get_train_val_split(self, idf, train_frac):
+        """
+        Gets the training and validation split of the data.
+
+        Args:
+            idf (pandas.DataFrame): A pandas DataFrame containing
+              the full dataset.
+            train_frac (float): Fraction of the training data to load
+
+        Returns:
+            tuple: A tuple containing the training and validation data
+             dataframes.
+        """
         # shuffle all the data then slice
         shuffle_df = idf.sample(frac=1).reset_index(drop=True)
         num_samples = len(shuffle_df)
@@ -133,17 +202,28 @@ class CsvFeatureDfBuilder(object):
 
     def _get_model_variables_df(self, idf):
         """
-        See class notes about why hard-coded column names are in use.
-        Basically, prioritizing:
-          * Readability & simplicity
-          * Avoiding user error (e.g. a typo makes a model not trainable)
-          * Ensuring the design will make extension / refactor simple
-            in case of a future use case for varying column names
+        Choose only the columns relevant for training.
+
+        Args:
+            idf (pandas.DataFrame): A pandas DataFrame
+
+        Returns:
+            pandas.DataFrame: A pandas DataFrame with only the target and
+              feature columns
         """
         return idf.loc[:, [self.target_col] + self.feature_col_list]
 
 
     def save_df(self, odf, output_dir, output_fn):
+        """
+        Saves the raw dataframe to a csv file.
+
+        Args:
+            odf (pandas.DataFrame): A pandas DataFrame containing data to
+              be saved.
+            output_dir (str): Directory for the save file.
+            output_fn (str): Name of the save file.
+        """
         ofn = os.path.join(os.path.expandvars(output_dir),
                            output_fn)
         res = odf.to_csv(ofn, index=False, mode="w")
@@ -152,6 +232,18 @@ class CsvFeatureDfBuilder(object):
 
 
     def get_train_val_dfs(self):
+        """
+        Main "pipeline" function that performs each step:
+          * read data from disk
+          * clean price data
+          * create feature columns
+          * select only cols relevant for training
+          * randomly split data to train/val sets
+
+        Returns:
+            tuple: A tuple containing the train DataFrame and
+              the validation DataFrame.
+        """
         idf = self._get_input_df(input_fn=self.input_fn)
         idf = self._clean_prices(idf)
         idf = self._add_feat_cols(idf)
@@ -164,10 +256,21 @@ class CsvFeatureDfBuilder(object):
 
 
 class DfDataSet(tud.Dataset):
-    """
+    """A PyTorch dataset class to load and prepare train and validation data
+      from a Pandas DataFrame.
     """
 
     def __init__(self, data_df, feature_col_list, target_col):
+        """
+        Init "dataframe dataset" class. The feature & target sensor must be
+        None in order for the automatic data loading to happen on the first
+        iteration through the data.
+
+        Args:
+            data_df (pandas.DataFrame): A DataFrame containing the training data.
+            feature_col_list (list): A list of feature column names.
+            target_col (str): The name of the target column.
+        """
         super().__init__()
         self.feature_tensor = None
         self.target_tensor = None
@@ -180,6 +283,12 @@ class DfDataSet(tud.Dataset):
 
 
     def load_data(self):
+        """
+        Create the feature and target PyTorch Tensor objects from the
+        underlying Pandas DataFrame. Intended to be called automatically
+        from `self.__getitem__` if and only if the feature/target tensor
+        objects are both None (i.e. on the first iteration through the data)
+        """
         if (self.feature_tensor is None) and (self.target_tensor is None):
             self.feature_tensor = torch.tensor(
                 self.data_df.loc[:, self.feature_col_list].values
@@ -194,10 +303,22 @@ class DfDataSet(tud.Dataset):
 
 
     def __len__(self):
+        """Returns the length of the underyling Pandas DataFrame
+        """
         return len(self.data_df)
 
 
     def __getitem__(self, idx):
+        """
+        Method to retrieve a single sample from the dataset.
+
+        Args:
+            idx (int): The index of the sample to retrieve.
+
+        Returns:
+            tuple: A tuple containing the features and target PyTorch Tensor
+              objects for the sample at the given index.
+        """
         if (self.feature_tensor is None) and (self.target_tensor is None):
             self.load_data()
         return self.feature_tensor[idx], self.target_tensor[idx]

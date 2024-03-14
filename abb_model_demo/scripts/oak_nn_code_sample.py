@@ -83,7 +83,7 @@ def run_pipeline(input_fn, train_frac, logger, hyperparam_dict):
 
     In the full project, pipelines are objects that have components. The
     components are objects that perform some operation, which is why they are
-    named with verbs.
+    named as nouns that indicate their job ("doers").
 
     To keep the code sample simple, only the data builder and result visualizer
     components are directly used.
