@@ -129,17 +129,31 @@ def do_uquery_loop(model, device, output_len=300):
     """
 
     entire_chat = ""
+    special_command_list = ["..go", "..quit", "..show", "..forget"]
     # begin query loop
     while True:
-        # allow multi-line inputs
-        uline = input("< Enter query below. Empty line stops input. DONE quits. >\n")
+        # allow multi-line inputs. TODO: printable help for commands
+        qprompt = ("< Enter query below. Line '..go' procs input. "
+                   "Other cmds: ..quit, ..show, ..forget. >\n")
         # build up multi-line input
-        uq = uline
-        while len(uline)>0:
-            uline = input()
-            uq = "\n".join([uq, uline])
-        if uq.strip()=="DONE":
+        uq = ""
+        while True:
+            uline = input(qprompt if uq=="" else "")
+            if uline.strip() not in special_command_list:
+              uq = "\n".join([uq, uline])
+            else:
+              break
+        # special commands
+        uline = uline.strip()
+        if uline=="..quit":
             break
+        elif uline=="..show":
+            print(f"\n==========\n{entire_chat}\n==========\n")
+            continue
+        elif uline=="..forget":
+            entire_chat=""
+            print("< Emptied chat history >")
+            continue
         print("OK, generating response...")
         # format this (latest) query
         last_uchat = templated_prompt(user_query=uq)
