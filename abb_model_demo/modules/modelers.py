@@ -23,6 +23,7 @@ PyTorch Neural Net related section
 
 class AbbNnSeqModelBuilder():
     """
+    Module to build a sequential neural network using PyTorch
     """
 
     def __init__(self):
@@ -30,6 +31,16 @@ class AbbNnSeqModelBuilder():
 
 
     def get_new_model(self, device, num_features):
+        """
+        Returns a new neural network model.
+
+        Args:
+            device (str): The target device for the model.
+            num_features (int): The number of features of the data.
+
+        Returns:
+            torn.nn.Sequential: A neural network model.
+        """
         return nn.Sequential(nn.Linear(num_features, 32),
                              nn.BatchNorm1d(32),
                              nn.ReLU(),
@@ -45,9 +56,32 @@ class AbbNnSeqModelBuilder():
 
 class AbbNnModelTrainer():
     """
+    A class for training a model from AbbNnSeqModelBuilder.get_new_model
+
+    Properties:
+       expected_hyperparam_list (List[str]): list of keys that must be
+         present in the hyperparam_dict passed to __init__
+       loss_name (str): name of the loss function used to train
+       loss_function (function): actual loss function used to train
+       step_col (str): name of the step/epoch column in the loss DataFrame
+       dset_col (str): name of the data set (train/val) column in the
+         loss DataFrame
+       summary_pred_col (str): name of the prediction column in the
+         prediction summary DataFrame
+       summary_targ_col (str): name of the target column in the
+         prediction summary DataFrame
+
     """
 
     def __init__(self, logger, hyperparam_dict):
+        """Initializes the class with the logger and hyperparam_dict.
+
+        Raises ValueError if required hyperparameters are not in the dict
+
+        Args:
+            logger (logging.Logger): A logger for recording training events.
+            hyperparam_dict (dict): A dictionary of hyperparameters for the model.
+        """
         self.logger = logger
         self.hyperparam_dict = hyperparam_dict
 
@@ -96,6 +130,18 @@ class AbbNnModelTrainer():
 
 
     def _train_batch(self, dataloader, model, optimizer, device):
+        """
+        Train the model on batches of data. One call to this function is one epoch.
+
+        Args:
+            dataloader (torch.data.DataLoader): A data loader for the training data.
+            model (nn.Module): The model to train.
+            optimizer (torch.optim.Optimizer): An optimizer for the model's parameters.
+            device (str): The target device for the model.
+
+        Returns:
+            avg_loss (float): the average value of the loss function over the batches
+        """
         model.train()
         avg_loss = 0.0
         for bi, (data, target) in enumerate(dataloader):
@@ -111,6 +157,23 @@ class AbbNnModelTrainer():
         
 
     def validate(self, dataloader, model, device, build_preds_df=False):
+        """
+        Validates the model on the given data
+
+        Args:
+            dataloader (torch.data.DataLoader): A data loader for the validation data.
+            model (nn.Module): The model to validate.
+            device (str): The target device for the model.
+
+            build_preds_df (bool, Optional): A boolean flag indicating if the results
+                should be written to a DataFrame.
+
+        Returns:
+            tuple[float, pd.DataFrame]:
+               - avg_loss (float): average value of the loss function over the data
+               - df (pd.DataFrame): pd.DataFrame storing the target and prediction
+                   values for each record. None if build_preds_df==False
+        """
         model.eval()
         avg_loss = 0.0
         bdf_list= []
@@ -140,6 +203,23 @@ class AbbNnModelTrainer():
 
     def train_and_validate(self, train_dataloader, val_dataloader,
                            model, optimizer, device):
+        """
+        Trains and validates the model on the given data
+
+        Args:
+            train_dataloader (torch.data.DataLoader): A data loader for the training data.
+            val_dataloader (torch.data.DataLoader): A data loader for the validation data.
+            model (nn.Module): The model to train.
+            optimizer (torch.optim.Optimizer): An optimizer for the model's parameters.
+            device (str): The target device for the model.
+
+        Returns:
+            tuple[pd.DataFrame, pd.DataFrame]:
+               - loss_df (pd.DataFrame): DataFrame containing the summary train/val
+                   loss information
+               - val_preds_df (pd.DataFrame): DataFrame containing the target/prediction
+                   values for the validation dataset
+        """
         loss_list = []
         for epoch in range(self.hyperparam_dict["num_epochs"]):
             train_loss = self._train_batch(
@@ -187,9 +267,21 @@ XGBoost related section
 
 class AbbXgbModelBuilder():
     """
+    Module to build an XGBRegressor model
+
+    Properties:
+       expected_hyperparam_list (List[str]): list of keys that must be
+         present in the hyperparam_dict passed to __init__
     """
 
     def __init__(self, hyperparam_dict):
+        """Initializes the class with the hyperparam_dict.
+
+        Raises ValueError if required hyperparameters are not in the dict
+
+        Args:
+            hyperparam_dict (dict): A dictionary of hyperparameters for the model.
+        """
         self.hyperparam_dict = hyperparam_dict
 
         missing_param_list = [ k for k in self.expected_hyperparam_list
@@ -214,6 +306,15 @@ class AbbXgbModelBuilder():
 
 
     def get_new_model(self, loss_function):
+        """
+        Returns a new XGBRegressor model
+
+        Args:
+            loss_function (function): actual loss function used to train
+
+        Returns:
+            xgboost.XGBRegressor: a new model with hyperparameters set
+        """
         return xgboost.XGBRegressor(
             learning_rate=self.hyperparam_dict["learn_rate"],
             n_estimators=self.hyperparam_dict["num_estimators"],
@@ -229,9 +330,31 @@ class AbbXgbModelBuilder():
 
 class AbbXgbModelTrainer():
     """
+    A class for training a model from AbbXgbModelBuilder.get_new_model
+
+    Properties:
+       expected_hyperparam_list (List[str]): list of keys that must be
+         present in the hyperparam_dict passed to __init__
+       loss_name (str): name of the loss function used to train
+       loss_function (function): actual loss function used to train
+       step_col (str): name of the step/epoch column in the loss DataFrame
+       dset_col (str): name of the data set (train/val) column in the
+         loss DataFrame
+       summary_pred_col (str): name of the prediction column in the
+         prediction summary DataFrame
+       summary_targ_col (str): name of the target column in the
+         prediction summary DataFrame
     """
 
     def __init__(self, logger, hyperparam_dict):
+        """Initializes the class with the logger and hyperparam_dict.
+
+        Raises ValueError if required hyperparameters are not in the dict
+
+        Args:
+            logger (logging.Logger): A logger for recording training events.
+            hyperparam_dict (dict): A dictionary of hyperparameters for the model.
+        """
         self.logger = logger
         self.hyperparam_dict = hyperparam_dict
 
@@ -280,12 +403,41 @@ class AbbXgbModelTrainer():
 
 
     def _get_xy_dfs(self, df, feature_col_list, target_col):
+        """
+        Prepares data from a Pandas DataFrame so it can be passed to
+        an XGBoost model using the sklearn interface.
+
+        Args:
+            df (pandas.DataFrame): A DataFrame containing the data to prepare.
+            feature_col_list (list): A list of feature column names.
+            target_col (str): The name of the target column.
+
+        Returns:
+            tuple[pd.DataFrame, pd.Series]: the X,y values to be used for training
+              or validation
+        """
         return df.loc[:, feature_col_list], df.loc[:, target_col]
 
 
     def get_pred_vs_targ_df(self, val_df,
                             feature_col_list, target_col,
                             model):
+        """
+        Stores values predicted by the model in a a DataFrame. Data from val_df
+        is used for predictions. The target column from val_df is copied to the
+        new summary DataFrame
+
+        Args:
+            val_df (pandas.DataFrame): A DataFrame containing the data to generate
+              the predictions for. Intended to be the validation dataset
+            feature_col_list (list): A list of feature column names.
+            target_col (str): The name of the target column.
+            model (XGBoost.XGBRegressor): A trained XGBoost regressor model object.
+
+        Returns:
+            pandas.DataFrame: A DataFrame containing the summary prediction and
+              target values
+        """
         df = val_df.loc[:, [target_col]]\
                    .copy()\
                    .rename(columns={target_col: self.summary_targ_col})
@@ -318,6 +470,15 @@ class AbbXgbModelTrainer():
         197  0.214104            0.045840     val
         198  0.214100            0.045839     val
         199  0.214108            0.045842     val
+
+        Args:
+            eval_results (dict): An evaluation results dictionary created by XGB
+            res_name_list (list): A list of meaningful strings representing to
+              be used instead of XGB's eval_results default keys. The list order
+              must correspond to the order of keys in eval_results
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the evaluation results.
         """
         df_list = []
         for rname, metric_dict in zip(res_name_list, eval_results.values()):
@@ -334,6 +495,25 @@ class AbbXgbModelTrainer():
     def train_and_validate(self, train_df, val_df,
                            feature_col_list, target_col,
                            model):
+        """
+        Trains a model on the training data and validates its performance
+        on the validation data.
+
+        Args:
+            train_df (pd.DataFrame): The DataFrame containing the training data.
+            val_df (pd.DataFrame): The DataFrame containing the validation data.
+            feature_col_list (List[str]): A list of strings representing the
+              names of the feature columns
+            target_col (str): The name of the target variable column
+            model (object): The XGB model to be trained
+
+        Returns:
+            tuple[pd.DataFrame, pd.DataFrame]:
+              - loss_df (pd.DataFrame): DataFrame containing the train/val loss
+                  values at each training step
+              - val_preds_df (pd.DataFrame): DataFrame containing the
+                  prediction and target values for the validation dataset
+        """
 
         X_train, y_train = self._get_xy_dfs(df=train_df,
                                             feature_col_list=feature_col_list,
