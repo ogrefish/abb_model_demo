@@ -14,16 +14,44 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcol
 import matplotlib.ticker as mtick
 import seaborn as sns
+import logging
 
+from abb_model_demo.modules.data_loaders \
+    import CsvFeatureDfBuilder
 
 
 def get_train_df(input_dir, train_fn):
-    return pd.read_csv(os.path.expandvars(
-        os.path.join(input_dir, train_fn))
-        )
+    """
+    Reads the dataset from a CSV file. Uses CsvFeatureDfBuilder
+    to prepare the data.
+
+    Args:
+        input_dir (str): The directory containing the input data.
+        train_fn (str): The name of the training CSV file.
+
+    Returns:
+        pandas.DataFrame: A data frame containing the training data.
+    """
+    input_fn = os.path.join(input_dir, train_fn)
+    df_builder = CsvFeatureDfBuilder(input_fn=input_fn,
+                                     train_frac=1.0,
+                                     logger=logging)
+    df = df_builder.get_clean_explore_df()
+    return df
 
 
 def save_plot(fig, plot_name, plot_dir, plot_tag, verbosity=10):
+    """
+    Saves a plot to a PNG file.
+
+    Args:
+        fig (matplotlib.figure.Figure): The figure to save.
+        plot_name (str): The name of the plot.
+        plot_dir (str): The directory to save the plot in.
+        plot_tag (str): The tag to append to the plot name.
+        verbosity (int, optional): The verbosity level. Defaults to 10.
+          values 10+ will print the filename that got saved
+    """
     ppath = os.path.expandvars(plot_dir)
     os.makedirs(ppath, exist_ok=True)
     fpn = os.path.join(ppath, f"{plot_name}_{plot_tag}.png")
@@ -33,6 +61,18 @@ def save_plot(fig, plot_name, plot_dir, plot_tag, verbosity=10):
 
 
 def draw_host_tf_props(df, plot_dir, plot_tag):
+    """
+    Plots the distribution of price segmented by various
+    true/false properties of host profiles.
+
+    Args:
+        df (pandas.DataFrame): The dataframe containing the host data.
+        plot_dir (str): The directory to save the plot in.
+        plot_tag (str): The tag to append to the plot name.
+
+    Returns:
+        matplotlib.figure.Figure: The figure containing the plot.
+    """
     g = sns.displot(df,
                     x="price_amt",
                     col="host_has_profile_pic",
@@ -47,6 +87,17 @@ def draw_host_tf_props(df, plot_dir, plot_tag):
 
 
 def draw_property_type(df, plot_dir, plot_tag):
+    """
+    Plots the distribution of prices segmented by property type.
+
+    Args:
+        df (pandas.DataFrame): The dataframe containing the property data.
+        plot_dir (str): The directory to save the plot in.
+        plot_tag (str): The tag to append to the plot name.
+
+    Returns:
+        matplotlib.figure.Figure: The figure containing the plot.
+    """
     fig, ax = plt.subplots(1)
     g = sns.histplot(df,
                      x="price_amt",
@@ -61,6 +112,18 @@ def draw_property_type(df, plot_dir, plot_tag):
 
 
 def draw_accom_beds(df, plot_dir, plot_tag):
+    """
+    Plots the distribution of price segmented by the number of people
+    accommodated and by the number of beds (separately).
+    
+    Args:
+        df (pandas.DataFrame): The DataFrame containing the data.
+        plot_dir (str): The directory to save the plot in.
+        plot_tag (str): The tag to append to the plot name.
+
+    Returns:
+        matplotlib.figure.Figure: The figure containing the plot.
+    """
     fig, ax = plt.subplots(1, 2, figsize=(12,5))
     g = sns.boxplot(df,
                     y="price_amt",
@@ -82,6 +145,17 @@ def draw_accom_beds(df, plot_dir, plot_tag):
 
 
 def draw_neighborhoods(df, plot_dir, plot_tag):
+    """
+    Plots the distribution of price segmented by neighborhood ID.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame containing the data.
+        plot_dir (str): The directory to save the plot in.
+        plot_tag (str): The tag to append to the plot name.
+
+    Returns:
+        matplotlib.figure.Figure: The figure containing the plot.
+    """
     fig, ax = plt.subplots(1, figsize=(15,5))
     g = sns.boxplot(df,
                     y="price_amt",
@@ -98,6 +172,17 @@ def draw_neighborhoods(df, plot_dir, plot_tag):
 
 
 def draw_avail(df, plot_dir, plot_tag):
+    """
+    Plots the distribution of price segmented by availability.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame containing the data.
+        plot_dir (str): The directory to save the plot in.
+        plot_tag (str): The tag to append to the plot name.
+
+    Returns:
+        matplotlib.figure.Figure: The figure containing the plot.
+    """
     fig, ax = plt.subplots(1)
     g = sns.boxplot(df,
                     x="has_availability",
@@ -111,7 +196,17 @@ def draw_avail(df, plot_dir, plot_tag):
     return g
 
 
-def main(input_dir, plot_dir, train_fn, test_fn, plot_tag):
+def main(input_dir, plot_dir, train_fn, plot_tag):
+    """
+    Generate & display price distribution plots for various dependencies or
+    segments of potential predictive features.
+
+    Args:
+        input_dir (str): The directory containing the input data.
+        plot_dir (str): The directory to save the plots in.
+        train_fn (str): The name of the file containing the training data.
+        plot_tag (str): The tag to append to the plot name.
+    """
 
     df = get_train_df(input_dir=input_dir, train_fn=train_fn)
 
@@ -150,12 +245,8 @@ def get_args():
                         help="output directory in which to store train/test files"
                         )
     parser.add_argument("-r", "--train_fn",
-                        default="train_listing.csv.gz",
+                        default="listings.csv.gz",
                         help="filename in which to store the train data"
-                        )
-    parser.add_argument("-s", "--test_fn",
-                        default="test_listing.csv.gz",
-                        help="filename in which to store the test data"
                         )
     parser.add_argument("-p", "--plot_tag",
                         default=None,
@@ -171,7 +262,6 @@ if __name__=="__main__":
     main(input_dir=args.input_dir,
          plot_dir=args.plot_dir,
          train_fn=args.train_fn,
-         test_fn=args.test_fn,
          plot_tag=args.plot_tag
          )
 

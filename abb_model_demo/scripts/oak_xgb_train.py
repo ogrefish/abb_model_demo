@@ -1,4 +1,5 @@
 """
+Steering script for the XGBoost model training.
 """
 
 import os
@@ -43,6 +44,15 @@ def build_xgb_pipeline(input_fn, train_frac, logger, hyperparam_dict):
     (class)methods if the code-base grew enough to warrant it -- i.e. if there
     are multiple options for each component and some combinations don't make
     sense.
+
+    Args:
+        input_fn (str): Path to the input data file.
+        train_frac (float): Fraction of the training data to use for building the pipeline.
+        logger (logging.Logger): Logger object to record pipeline building progress.
+        hyperparam_dict (dict): Dictionary of hyperparameters for the optimizer.
+
+    Returns:
+        AbbXgbPipeline: A sequence neural network pipeline.
     """
 
     pipeline = AbbXgbPipeline(
@@ -61,6 +71,15 @@ def build_xgb_pipeline(input_fn, train_frac, logger, hyperparam_dict):
 def main(input_fn, train_frac, log_level, hyperparam_dict,
          plot_save_dir):
     """
+    Build and run the model training pipeline. Then save summary plots.
+
+    Args:
+        input_fn (str): Path to the input data file.
+        train_frac (float): Fraction of the training data to use for building the pipeline.
+        log_level (str): the level at which to log using `logging`
+        hyperparam_dict (dict): Dictionary of hyperparameters for the optimizer.
+        plot_save_dir (str): the directory in which to save plots.
+           if None, no plots will be saved
     """
 
     logger = logging.getLogger(__name__)
@@ -103,6 +122,12 @@ def main(input_fn, train_frac, log_level, hyperparam_dict,
 
 
 def get_args():
+    """
+    Parses command line arguments and returns the arguments object
+
+    Returns:
+       argparse.Namespace: the parsed command line arguments
+    """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
         )
