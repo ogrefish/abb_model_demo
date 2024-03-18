@@ -231,9 +231,32 @@ class CsvFeatureDfBuilder(object):
         return ofn, res
 
 
+    def get_clean_explore_df(self):
+        """
+        Alternative main "pipeline" function to build a DF intended
+        for exploring the data and finding features.
+
+        This method performs the steps:
+          * read data from disk
+          * clean price data
+          * create feature columns
+
+        Returns:
+            pd.DataFrame: The cleaned DataFrame ready for exploring
+        """
+        idf = self._get_input_df(input_fn=self.input_fn)
+        idf = self._clean_prices(idf)
+        idf = self._add_feat_cols(idf)
+        self.logger.info(f"data size {idf.shape}")
+        return idf
+
+
     def get_train_val_dfs(self):
         """
-        Main "pipeline" function that performs each step:
+        Main "pipeline" function to build both the training and validation
+        DataFrame objects, intended for use training models.
+
+        This method performs the steps:
           * read data from disk
           * clean price data
           * create feature columns
