@@ -173,8 +173,8 @@ def get_args():
     """
     Parses command line arguments and returns the arguments object
 
-    :return: the parsed command line arguments
-    :rtype: argparse.Namespace
+    Returns:
+       argparse.Namespace: the parsed command line arguments
     """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter

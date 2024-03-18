@@ -192,6 +192,17 @@ def run_pipeline(input_fn, train_frac, logger, hyperparam_dict):
 
 
 def _find_device():
+    """
+    Find the available device to use for training.
+
+    Order of preference:
+       1) "cuda" (linux GPU)
+       2) "mps" (macos GPU)
+       3) "cpu"
+
+    Returns:
+        str: The available device.
+    """
     if torch.cuda.is_available():
         device = "cuda"
     elif torch.backends.mps.is_available():
