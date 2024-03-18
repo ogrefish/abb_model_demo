@@ -49,8 +49,8 @@ _Essential_
   1. [done] XGB model code impl 
   1. [done] Steering code to run XGB model & produce summary plots
   1. [done] Digestible code sample for NN model with docstrings
-  1. Doc strings for all classes and methods, using an LLM to aid generation
-  1. Unit tests; esp. for feature, target preparation. Use LLM for aid.
+  1. [done] Doc strings for all classes and methods, using an LLM to aid generation
+  1. Tests: E2E of training scripts. Unit tests for data prep. Try using LLM for aid.
 
 _Future nice-to-haves_
   1. Bootstrap feature importance distributions (over subsampled data sets). Explore rating the importance of the highly correlated "Accommodates" and "Beds" features.
@@ -147,5 +147,16 @@ Properties of the host, such as whether the host is verified or has a profile pi
 ![host properties plots](abb_model_demo/data/plots/host_tf_props_oaklist.png)
 
 
+## (Limited) LLM/AI Usage
+
+Generative AI has been used ONLY for docstring creation, and is planned for test code creation.
+
+All scripts and classes have been handwritten by me for the purpose of building a code portfolio that is representative of my personal coding style and design choices.
+
+### Docstring creation
+
+Docstrings were creating using Gemini 2B locally. See the [gemma_chat.py](abb_model_demo/scripts/gemma_chat.py) script in this repo to see what I used to chat with the model.
+
+The most common prompt I used was `Please create a python docstring for this function.` followed by the function/method code of interest.
 
 
