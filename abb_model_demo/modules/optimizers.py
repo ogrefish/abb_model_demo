@@ -1,4 +1,13 @@
 """
+In this land are found modules that provide the optimizing
+steps. These are currently only used for the neural net
+gradient descent routines.
+
+This design implementation is currently inheritance oriented.
+The optimization modules are intended to be components of a
+pipeline (see pipelines.py). Could/should this be refactored to
+be more composition-oriented? It seems simple to maintain given
+the current scope.
 """
 
 import torch
@@ -6,9 +15,25 @@ import torch
 
 class AbbNnOptimizerBase():
     """
+    Base class for all neural net optimizer modules. Provides
+    some default functionality for batch_start, batch_step and
+    epoch_step.
     """
 
     def __init__(self, hyperparam_dict):
+        """Initializes an base-optimizer module.
+
+        Calls the `verify_hyperparams` function that must be implemented by
+        daughter classes.
+
+        Args:
+            hyperparam_dict (dict): A dictionary containing hyperparameter values.
+
+        Attributes:
+            hyperparam_dict (dict): The original hyperparameter dictionary.
+            optimizer (obj): The optimizer used by the model. (default: None)
+            scheduler (obj): The scheduler used by the model. (optional, default: None)
+        """
         self.hyperparam_dict = hyperparam_dict
         self.optimizer = None  # set in derived class
         self.scheduler = None  # (optionally) set in derived class
@@ -47,9 +72,27 @@ class AbbNnOptimizerBase():
 
 class AbbNnAdamOptimizer(AbbNnOptimizerBase):
     """
+    Adam optimizer specific implementation of an AbbNnOptimizerBase.
+
+    Properties:
+       expected_hyperparam_list (List[str]): list of keys that must be
+         present in the hyperparam_dict passed to __init__
     """
 
     def __init__(self, hyperparam_dict):
+        """Initializes an AbbNnAdamOptimizer
+
+        The `verify_hyperparams` method specified in this class is called
+        by `super().__init__`
+
+        Args:
+            hyperparam_dict (dict): A dictionary containing hyperparameter values.
+
+        Attributes:
+            hyperparam_dict (dict): The original hyperparameter dictionary.
+            optimizer (obj): The optimizer used by the model. (will be Adam)
+            scheduler (obj): The scheduler used by the model. (will be None)
+        """
         super().__init__(hyperparam_dict)
 
         self.optimizer = None
@@ -67,6 +110,19 @@ class AbbNnAdamOptimizer(AbbNnOptimizerBase):
 
 
     def prepare_optimizer(self, model_parameters):
+        """Sets up the optimizer for the model using the `model_parameters`
+        dictionary.
+
+        optimizer will be of type torch.optim.Adam
+        schedule will be None (not used for Adam)
+
+        Args:
+            model_parameters (dict): A dictionary containing parameters for the
+              model & optimizer
+
+        Raises:
+            AttributeError: If an optimizer is already built.
+        """
         if self.optimizer is None:
             self.optimizer = torch.optim.Adam(
                 model_parameters,
@@ -79,6 +135,11 @@ class AbbNnAdamOptimizer(AbbNnOptimizerBase):
 
 
     def verify_hyperparams(self):
+        """Check that all expected hyperparameters are actually in the
+        hyperparam_dict. See `expected_hyperparam_list` property.
+
+        Raises ValueError if required hyperparameters are not in the dict
+        """
         missing_param_list = [ k for k in self.expected_hyperparam_list
                                if k not in self.hyperparam_dict.keys()
                                ]
@@ -88,9 +149,27 @@ class AbbNnAdamOptimizer(AbbNnOptimizerBase):
 
 class AbbNnAdadeltaOptimizer(AbbNnOptimizerBase):
     """
+    Ada-delta optimizer specific implementation of an AbbNnOptimizerBase.
+
+    Properties:
+       expected_hyperparam_list (List[str]): list of keys that must be
+         present in the hyperparam_dict passed to __init__
     """
 
     def __init__(self, hyperparam_dict):
+        """Initializes an AbbNnAdadeltaOptimizer
+
+        The `verify_hyperparams` method specified in this class is called
+        by `super().__init__`
+
+        Args:
+            hyperparam_dict (dict): A dictionary containing hyperparameter values.
+
+        Attributes:
+            hyperparam_dict (dict): The original hyperparameter dictionary.
+            optimizer (obj): The optimizer used by the model. (will be Adadelta)
+            scheduler (obj): The scheduler used by the model. (will be StepLR)
+        """
         super().__init__(hyperparam_dict)
 
         self.optimizer = None
@@ -109,6 +188,19 @@ class AbbNnAdadeltaOptimizer(AbbNnOptimizerBase):
 
 
     def prepare_optimizer(self, model_parameters):
+        """Sets up the optimizer for the model using the `model_parameters`
+        dictionary.
+
+        optimizer will be of type torch.optim.Adadelta
+        schedule will be of type torch.optim.lr_scheduler.StepLR
+
+        Args:
+            model_parameters (dict): A dictionary containing parameters for the
+              model & optimizer
+
+        Raises:
+            AttributeError: If an optimizer is already built.
+        """
         if (self.optimizer is None) and (self.scheduler is None):
             self.optimizer = torch.optim.Adadelta(
                 model_parameters,
@@ -124,6 +216,11 @@ class AbbNnAdadeltaOptimizer(AbbNnOptimizerBase):
 
 
     def verify_hyperparams(self):
+        """Check that all expected hyperparameters are actually in the
+        hyperparam_dict. See `expected_hyperparam_list` property.
+
+        Raises ValueError if required hyperparameters are not in the dict
+        """
         missing_param_list = [ k for k in self.expected_hyperparam_list
                                if k not in self.hyperparam_dict.keys()
                                ]
